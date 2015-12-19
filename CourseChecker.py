@@ -63,6 +63,7 @@ class CourseChecker(object):
 
             print("{:<20} => {:<5}".format(course, grade))
 
-site = CourseChecker()
-site.start()
-site.get_grades()
+if __name__ == '__main__':
+    site = CourseChecker()
+    site.start()
+    site.get_grades()
