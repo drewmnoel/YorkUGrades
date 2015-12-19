@@ -13,4 +13,4 @@ The script expects some configuration information in `creds.cfg`. Here's an exam
     Password: hunter2
 
 ## Requirements?
-Python 3 is required, with BeautifulSoup 4 and Requests
+Python 3 is required, with BeautifulSoup 4.4.1+ and Requests
