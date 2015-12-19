@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import configparser, requests
 from bs4 import BeautifulSoup
 
