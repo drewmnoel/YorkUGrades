@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 class CourseChecker(object):
     COURSE_PAGE = 'https://wrem.sis.yorku.ca/Apps/WebObjects/ydml.woa/wa/DirectAction/document?name=CourseListv1'
     LOGIN_PAGE = 'https://passportyork.yorku.ca/ppylogin/ppylogin'
+
     def __init__(self):
         config = configparser.ConfigParser()
         config.read(['creds.cfg'])
@@ -17,43 +18,44 @@ class CourseChecker(object):
         if not 'password' in config['Site']:
             raise Exception('No password key found')
 
+        # Initialize vars
         self.username = config['Site']['username']
         self.password = config['Site']['password']
         self.session = requests.Session()
 
     # Login to PPY
     def start(self):
-        # First pretend to load the course list
+        # First pretend to load the course list to get the redir cookie set
         self.session.get(CourseChecker.COURSE_PAGE)
 
-        # Then go actually log in
+        # Prepare login data
         login_data = {
             'mli': self.username,
             'password': self.password,
             'dologin': 'Login'}
 
+        # Log in and make sure it worked
         r = self.session.post(CourseChecker.LOGIN_PAGE, data=login_data)
-
         if not 'You have successfully authenticated' in r.text:
             raise Exception('Failed to login')
 
+    # Scrape grades
     def get_grades(self):
         r = self.session.get(CourseChecker.COURSE_PAGE)
-        #print(r.text)
         soup = BeautifulSoup(r.text, 'html.parser')
 
-        # Get the table, rip into rows, nuke header row
+        # Get the table, make sure the data makes sense
         grades_table = soup.find_all('table', class_='bodytext')
         if len(grades_table) != 1:
             raise Exception('Table could not be found')
-
-        grades_rows = grades_table[0].find_all('tr')
-        if len(grades_rows) <= 1:
+        if len(grades_table[0].find_all('tr')) <= 1:
             raise Exception('Table was empty')
 
+        # Remove header row
+        grades_rows = grades_table[0].find_all('tr')
         grades_rows = grades_rows[1:]
 
-        # Go row-by-row
+        # Go row-by-row and print out the grades
         for row in grades_rows:
             cells = row.find_all('td')
             course = cells[1].get_text()
