@@ -26,13 +26,18 @@ class CourseChecker(object):
     # Login to PPY
     def start(self):
         # First pretend to load the course list to get the redir cookie set
-        self.session.get(CourseChecker.COURSE_PAGE)
+        r = self.session.get(CourseChecker.COURSE_PAGE)
+
 
         # Prepare login data
         login_data = {
             'mli': self.username,
             'password': self.password,
             'dologin': 'Login'}
+        soup = BeautifulSoup(r.text, 'html.parser')
+        hiddens = soup.find_all("input", type="hidden")
+        for tag in hiddens:
+            login_data[tag['name']] = tag['value']
 
         # Log in and make sure it worked
         r = self.session.post(CourseChecker.LOGIN_PAGE, data=login_data)
@@ -46,7 +51,7 @@ class CourseChecker(object):
 
         # Get the table, make sure the data makes sense
         grades_table = soup.find_all('table', class_='bodytext')
-        if len(grades_table) != 1:
+        if len(grades_table) == 0:
             raise Exception('Table could not be found')
         if len(grades_table[0].find_all('tr')) <= 1:
             raise Exception('Table was empty')
